@@ -1,15 +1,28 @@
-import MetaTrader5 as mt5
-
-if not mt5.initialize():
-    print("Initialization failed:", mt5.last_error())
-    quit()
-
-print("Connected to terminal")
-
-info = mt5.terminal_info()
-print("Terminal info:", info)
-
-account_info = mt5.account_info()
-print("Account info:", account_info)
-
-mt5.shutdown()
+{
+    "external_direction": "neutral",
+    "internal_direction": "neutral",
+    "state": "range",
+    "bos": None,
+    "momentum_score": -1,
+    "internal_swings": [
+        (Timestamp("2026-02-12 06:30:00"), np.float64(1.18521), "low"),
+        (Timestamp("2026-02-12 08:45:00"), np.float64(1.18708), "low"),
+        (Timestamp("2026-02-12 09:15:00"), np.float64(1.1887699999999999), "high"),
+        (Timestamp("2026-02-12 09:45:00"), np.float64(1.18874), "high"),
+        (Timestamp("2026-02-12 10:45:00"), np.float64(1.18742), "low"),
+        (Timestamp("2026-02-12 11:00:00"), np.float64(1.18747), "low"),
+        (Timestamp("2026-02-12 12:00:00"), np.float64(1.18859), "high"),
+        (Timestamp("2026-02-12 12:45:00"), np.float64(1.18666), "low"),
+        (Timestamp("2026-02-12 14:00:00"), np.float64(1.18875), "high"),
+        (Timestamp("2026-02-12 14:30:00"), np.float64(1.1887), "high"),
+        (Timestamp("2026-02-12 16:00:00"), np.float64(1.18897), "high"),
+        (Timestamp("2026-02-12 17:00:00"), np.float64(1.18597), "low"),
+    ],
+    "external_swings": [
+        (Timestamp("2026-02-12 09:15:00"), np.float64(1.1887699999999999), "high"),
+        (Timestamp("2026-02-12 09:45:00"), np.float64(1.18874), "high"),
+        (Timestamp("2026-02-12 12:00:00"), np.float64(1.18859), "high"),
+        (Timestamp("2026-02-12 12:45:00"), np.float64(1.18666), "low"),
+        (Timestamp("2026-02-12 16:00:00"), np.float64(1.18897), "high"),
+    ],
+}
