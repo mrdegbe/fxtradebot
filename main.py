@@ -44,7 +44,11 @@ try:
     df_m15 = format_dataframe(df_m15)
     structure = analyze_structure(df_m15)
 
-    print(structure)
+    # print(structure)
+    with open("output.txt", "w") as file:
+        file.write("STRUCTURE ANALYSIS\n")
+        for key, value in structure.items():
+            file.write(f"{key}: {value}\n")
 
     # print(structure["state"])
     # print(structure["momentum_score"])
