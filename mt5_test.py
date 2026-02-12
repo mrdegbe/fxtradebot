@@ -9,7 +9,7 @@ import pandas as pd
 
 # print("MT5 initialized successfully")
 
-path = r"C:\Program Files\MetaTrader 5 EXNESS\terminal64.exe" 
+path = r"C:\Program Files\MetaTrader 5 EXNESS\terminal64.exe"
 
 # account = 298407903
 # password = "Python_1"
@@ -47,7 +47,7 @@ if rates is None:
     print("Failed to get rates:", mt5.last_error())
 else:
     df = pd.DataFrame(rates)
-    df['time'] = pd.to_datetime(df['time'], unit='s')
+    df["time"] = pd.to_datetime(df["time"], unit="s")
     print(df.head())
     print("Total candles:", len(df))
 

@@ -22,18 +22,14 @@ def detect_liquidity_sweep(df, swings, lookback=30):
 
         # Bullish sweep
         if last_swing_type == "low":
-            if candle['Low'] < last_swing_price and \
-               candle['Close'] > last_swing_price:
+            if candle["Low"] < last_swing_price and candle["Close"] > last_swing_price:
                 sweep_type = "bullish_sweep"
                 sweep_index = actual_index
 
         # Bearish sweep
         if last_swing_type == "high":
-            if candle['High'] > last_swing_price and \
-               candle['Close'] < last_swing_price:
+            if candle["High"] > last_swing_price and candle["Close"] < last_swing_price:
                 sweep_type = "bearish_sweep"
                 sweep_index = actual_index
 
     return sweep_type, sweep_index
-
-

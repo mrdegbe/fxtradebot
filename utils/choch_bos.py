@@ -1,7 +1,7 @@
-
 # -----------------------------
 # 6. Detect CHoCH
 # -----------------------------
+
 
 def detect_choch(
     data,
@@ -10,7 +10,7 @@ def detect_choch(
     sweep_index=None,
     range_multiplier=1.5,
     volume_multiplier=1.5,
-    lookback=20
+    lookback=20,
 ):
 
     if sweep_index is None:
@@ -27,14 +27,14 @@ def detect_choch(
 
         current = data.iloc[i]
 
-        current_close = current['Close']
-        current_high = current['High']
-        current_low = current['Low']
-        current_open = current['Open']
-        current_volume = current['Volume']
+        current_close = current["Close"]
+        current_high = current["High"]
+        current_low = current["Low"]
+        current_open = current["Open"]
+        current_volume = current["Volume"]
 
         # --- Displacement ---
-        recent_ranges = (data['High'] - data['Low']).iloc[i - lookback:i]
+        recent_ranges = (data["High"] - data["Low"]).iloc[i - lookback : i]
         avg_range = recent_ranges.mean()
 
         current_range = current_high - current_low
@@ -42,12 +42,11 @@ def detect_choch(
         body_percent = body_size / current_range if current_range != 0 else 0
 
         displacement = (
-            current_range > range_multiplier * avg_range and
-            body_percent > 0.6
+            current_range > range_multiplier * avg_range and body_percent > 0.6
         )
 
         # --- Volume expansion ---
-        avg_volume = data['Volume'].iloc[i - lookback:i].mean()
+        avg_volume = data["Volume"].iloc[i - lookback : i].mean()
         volume_expansion = current_volume > volume_multiplier * avg_volume
 
         reasons = []
@@ -91,6 +90,7 @@ def detect_choch(
 # 5. Detect Break of Structure
 # -----------------------------
 
+
 def detect_bos(data, swings, structure):
     if not swings:
         return None
@@ -100,17 +100,16 @@ def detect_bos(data, swings, structure):
 
     if structure == "bullish" and highs:
         last_swing_high = highs[-1][1]
-        current_close = data['Close'].iloc[-1]
+        current_close = data["Close"].iloc[-1]
 
         if current_close > last_swing_high:
             return "bullish_bos"
 
     if structure == "bearish" and lows:
         last_swing_low = lows[-1][1]
-        current_close = data['Close'].iloc[-1]
+        current_close = data["Close"].iloc[-1]
 
         if current_close < last_swing_low:
             return "bearish_bos"
 
     return None
-

@@ -12,6 +12,7 @@ def connect():
 
 
 def get_data(symbol, timeframe, bars=300):
+
     if not mt5.symbol_select(symbol, True):
         print("Failed to select symbol")
         return None
@@ -23,17 +24,27 @@ def get_data(symbol, timeframe, bars=300):
         return None
 
     df = pd.DataFrame(rates)
-    df['time'] = pd.to_datetime(df['time'], unit='s')
 
-    df.rename(columns={
-        'open': 'Open',
-        'high': 'High',
-        'low': 'Low',
-        'close': 'Close',
-        'tick_volume': 'Volume'
-    }, inplace=True)
+    # Convert time column properly
+    df["Time"] = pd.to_datetime(df["time"], unit="s")
 
-    df.set_index('time', inplace=True)
+    # Rename price columns
+    df.rename(
+        columns={
+            "open": "Open",
+            "high": "High",
+            "low": "Low",
+            "close": "Close",
+            "tick_volume": "Volume",
+        },
+        inplace=True,
+    )
+
+    # Keep only what we need
+    df = df[["Time", "Open", "High", "Low", "Close", "Volume"]]
+
+    # Set datetime index
+    df.set_index("Time", inplace=True)
 
     return df
 

@@ -2,18 +2,21 @@
 # 2. Structure Logic (Swings)
 # -----------------------------
 
+
 def find_swings(data, lookback=3):
     swings = []
 
     for i in range(lookback, len(data) - lookback):
-        high = data['High'].iloc[i]
-        low = data['Low'].iloc[i]
+        high = data["High"].iloc[i]
+        low = data["Low"].iloc[i]
 
-        is_swing_high = all(high > data['High'].iloc[i - j] for j in range(1, lookback + 1)) and \
-                        all(high > data['High'].iloc[i + j] for j in range(1, lookback + 1))
+        is_swing_high = all(
+            high > data["High"].iloc[i - j] for j in range(1, lookback + 1)
+        ) and all(high > data["High"].iloc[i + j] for j in range(1, lookback + 1))
 
-        is_swing_low = all(low < data['Low'].iloc[i - j] for j in range(1, lookback + 1)) and \
-                       all(low < data['Low'].iloc[i + j] for j in range(1, lookback + 1))
+        is_swing_low = all(
+            low < data["Low"].iloc[i - j] for j in range(1, lookback + 1)
+        ) and all(low < data["Low"].iloc[i + j] for j in range(1, lookback + 1))
 
         if is_swing_high:
             swings.append((data.index[i], high, "high"))
@@ -21,11 +24,15 @@ def find_swings(data, lookback=3):
         if is_swing_low:
             swings.append((data.index[i], low, "low"))
 
+    # print(f"Swings {swings[0]}")
+
     return swings
+
 
 # -----------------------------
 # 4. Determine market structure
 # -----------------------------
+
 
 def determine_structure(swings):
     highs = [s for s in swings if s[2] == "high"]

@@ -10,9 +10,9 @@ def detect_zone_from_choch(data, choch_index, choch_type):
 
     zone = {
         "type": "demand" if choch_type == "bullish_choch" else "supply",
-        "high": base_candle['High'],
-        "low": base_candle['Low'],
-        "created_at": data.index[choch_index - 1]
+        "high": base_candle["High"],
+        "low": base_candle["Low"],
+        "created_at": data.index[choch_index - 1],
     }
 
     return zone
@@ -26,7 +26,7 @@ def check_zone_retrace(data, zone):
     if zone is None:
         return False
 
-    current_price = data.iloc[-1]['Close']
+    current_price = data.iloc[-1]["Close"]
 
     if zone["type"] == "demand":
         return zone["low"] <= current_price <= zone["high"]
