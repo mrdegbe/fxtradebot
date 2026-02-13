@@ -23,9 +23,11 @@ PAIRS = [
     # "USDCHFm",
     # "USDCADm",
     # "USDJPYm",
+    # "GBPJPYm",
+    # "XAUUSDm",
 ]
 
-symbol = "EURUSDm"
+symbol = "USDCHFm"
 
 # print("Multi-pair scanner running (15M candle-close mode)...")
 
@@ -42,13 +44,19 @@ try:
 
     df_h4 = format_dataframe(df_h4)
     df_m15 = format_dataframe(df_m15)
-    structure = analyze_structure(df_m15)
+    structure = analyze_structure(df_h4, symbol=symbol)
 
-    # print(structure)
-    with open("output.txt", "w") as file:
-        file.write("STRUCTURE ANALYSIS\n")
-        for key, value in structure.items():
-            file.write(f"{key}: {value}\n")
+    # print(structure["state"])
+    # print(structure["external_direction"])
+    # print(structure["internal_direction"])
+    # print(structure["momentum_score"])
+    # print(structure["bos"])
+
+    print(f"Structure: {structure}")
+    # with open("output.py", "w") as file:
+    #     file.write("# STRUCTURE ANALYSIS\n")
+    #     for key, value in structure.items():
+    #         file.write(f"{key}: {value}\n")
 
     # print(structure["state"])
     # print(structure["momentum_score"])

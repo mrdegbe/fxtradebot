@@ -11,7 +11,7 @@ def connect():
     return True
 
 
-def get_data(symbol, timeframe, bars=50):
+def get_data(symbol, timeframe, bars=60):
 
     if not mt5.symbol_select(symbol, True):
         print("Failed to select symbol")
