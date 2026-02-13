@@ -27,7 +27,7 @@ PAIRS = [
     # "XAUUSDm",
 ]
 
-symbol = "USDCHFm"
+symbol = "EURUSDm"
 
 # print("Multi-pair scanner running (15M candle-close mode)...")
 
