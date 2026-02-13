@@ -218,6 +218,43 @@ def calculate_momentum(swings):
     return score
 
 
+def compress_structure_after_bos(swings, bos):
+    """
+    Compress swings after confirmed BOS.
+    Keeps only the protected level and the new structural break.
+    """
+
+    if not bos or len(swings) < 2:
+        return swings
+
+    level = bos["level"]
+    bos_type = bos["type"]
+
+    # Find swing that was broken
+    broken_index = None
+    for i, s in enumerate(swings):
+        if abs(s[1] - level) < 1e-10:
+            broken_index = i
+            break
+
+    if broken_index is None:
+        return swings
+
+    if bos_type == "bullish_bos":
+        # Keep last low before broken high
+        for j in range(broken_index - 1, -1, -1):
+            if swings[j][2] == "low":
+                return [swings[j], swings[-1]]
+
+    elif bos_type == "bearish_bos":
+        # Keep last high before broken low
+        for j in range(broken_index - 1, -1, -1):
+            if swings[j][2] == "high":
+                return [swings[j], swings[-1]]
+
+    return swings
+
+
 # ===================================================
 # 6️⃣ MASTER STRUCTURE ENGINE (CONFIRMED EXTERNAL BIAS)
 # ===================================================
@@ -241,6 +278,9 @@ def analyze_structure(
 
     # Confirmed BOS (internal trigger)
     bos = detect_bos(symbol, data, internal_swings)
+
+    if bos:
+        internal_swings = compress_structure_after_bos(internal_swings, bos)
 
     momentum = calculate_momentum(internal_swings)
 
