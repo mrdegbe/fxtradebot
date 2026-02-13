@@ -238,8 +238,6 @@ def analyze_structure(
     external_swings_raw = find_swings(data, external_lookback, tolerance)
     external_swings = strict_alternation_structure(external_swings_raw)
     # external_direction = get_direction(external_swings)
-    # Sequential structural reading
-    external_direction_structural = get_direction(external_swings)
 
     # Internal swings
     internal_swings = find_swings(data, internal_lookback, tolerance)
@@ -250,6 +248,9 @@ def analyze_structure(
     bos = detect_bos(symbol, data, internal_swings)
 
     momentum = calculate_momentum(internal_swings)
+
+    # Sequential structural reading
+    external_direction_structural = get_direction(external_swings)
 
     # ---------------------------------
     # Persistent External Bias Memory
