@@ -258,6 +258,8 @@ def compress_structure_after_bos(swings, bos):
 # ===================================================
 # 6️⃣ MASTER STRUCTURE ENGINE (CONFIRMED EXTERNAL BIAS)
 # ===================================================
+
+
 def analyze_structure(
     data,
     internal_lookback=3,
@@ -269,7 +271,6 @@ def analyze_structure(
     # External swings (visual only)
     external_swings_raw = find_swings(data, external_lookback, tolerance)
     external_swings = strict_alternation_structure(external_swings_raw)
-    # external_direction = get_direction(external_swings)
 
     # Internal swings
     internal_swings = find_swings(data, internal_lookback, tolerance)
@@ -288,20 +289,60 @@ def analyze_structure(
     external_direction_structural = get_direction(external_swings)
 
     # ---------------------------------
-    # Persistent External Bias Memory
+    # Persistent External Bias Memory (With Pullback Confirmation)
     # ---------------------------------
-    if not hasattr(analyze_structure, "external_bias"):
-        analyze_structure.external_bias = external_direction_structural
+    if not hasattr(analyze_structure, "external_state"):
+        analyze_structure.external_state = {
+            "bias": external_direction_structural,
+            "pending_bos": None,
+            "pending_level": None,
+            "awaiting_pullback": False,
+        }
 
-    # External bias only changes on confirmed BOS
+    external_state = analyze_structure.external_state
+
+    # 1️⃣ If BOS appears → mark as pending (do NOT flip bias yet)
     if bos:
-        if bos["type"] == "bullish_bos":
-            analyze_structure.external_bias = "bullish"
+        external_state["pending_bos"] = bos["type"]
+        external_state["pending_level"] = bos["level"]
+        external_state["awaiting_pullback"] = True
 
-        elif bos["type"] == "bearish_bos":
-            analyze_structure.external_bias = "bearish"
+    # 2️⃣ If we are waiting for pullback confirmation
+    if external_state["awaiting_pullback"]:
 
-    external_direction = analyze_structure.external_bias
+        last_close = data["Close"].iloc[-2]
+
+        # -------------------------
+        # Bullish Break Waiting Confirmation
+        # -------------------------
+        if external_state["pending_bos"] == "bullish_bos":
+
+            # Pullback = internal turns bearish but price holds above broken level
+            if (
+                internal_direction == "bearish"
+                and last_close > external_state["pending_level"]
+            ):
+                # Pullback confirmed → flip macro bias
+                external_state["bias"] = "bullish"
+                external_state["pending_bos"] = None
+                external_state["pending_level"] = None
+                external_state["awaiting_pullback"] = False
+
+        # -------------------------
+        # Bearish Break Waiting Confirmation
+        # -------------------------
+        elif external_state["pending_bos"] == "bearish_bos":
+
+            if (
+                internal_direction == "bullish"
+                and last_close < external_state["pending_level"]
+            ):
+                external_state["bias"] = "bearish"
+                external_state["pending_bos"] = None
+                external_state["pending_level"] = None
+                external_state["awaiting_pullback"] = False
+
+    external_direction = external_state["bias"]
 
     # ---------------------------------
     # Structural State Classification
@@ -346,3 +387,8 @@ def analyze_structure(
         "external_swings": external_swings,
         "internal_swings": internal_swings,
     }
+
+
+# def reset_structure_memory():
+#     if hasattr(analyze_structure, "external_state"):
+#         del analyze_structure.external_state
