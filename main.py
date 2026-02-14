@@ -2,8 +2,9 @@ import MetaTrader5 as mt5
 import time as systime
 
 import state
+from utils.data import get_data
 from utils.dataframe import format_dataframe
-from utils.mt5_connector import connect, get_data, shutdown
+from utils.mt5_connector import connect, shutdown
 from utils.structure import analyze_structure, find_swings
 from utils.liquidity import detect_liquidity_sweep
 from utils.choch_bos import detect_choch
@@ -16,18 +17,18 @@ from utils.alerts import send_telegram_alert
 # ===============================
 
 PAIRS = [
-    # "EURUSDm",
-    # "GBPUSDm",
-    # "AUDUSDm",
-    # "NZDUSDm",
-    # "USDCHFm",
-    # "USDCADm",
-    # "USDJPYm",
-    # "GBPJPYm",
-    # "XAUUSDm",
+    "EURUSDm",
+    "GBPUSDm",
+    "AUDUSDm",
+    "NZDUSDm",
+    "USDCHFm",
+    "USDCADm",
+    "USDJPYm",
+    "GBPJPYm",
+    "XAUUSDm",
 ]
 
-symbol = "EURUSDm"
+# symbol = "EURUSDm"
 
 # print("Multi-pair scanner running (15M candle-close mode)...")
 
@@ -39,12 +40,19 @@ if not connect():
     quit()
 
 try:
-    df_h4 = get_data(symbol, mt5.TIMEFRAME_H4)
-    df_m15 = get_data(symbol, mt5.TIMEFRAME_M15)
 
-    df_h4 = format_dataframe(df_h4)
-    df_m15 = format_dataframe(df_m15)
-    structure = analyze_structure(df_h4, symbol=symbol)
+    # while True:
+
+    for symbol in PAIRS:
+
+        # print(f"Checking {symbol}")
+        df_h4 = get_data(symbol, mt5.TIMEFRAME_H4)
+        df_m15 = get_data(symbol, mt5.TIMEFRAME_M15)
+
+        df_h4 = format_dataframe(df_h4)
+        df_m15 = format_dataframe(df_m15)
+        structure = analyze_structure(df_h4, symbol=symbol)
+        print(structure)
 
     # print(structure["state"])
     # print(structure["external_direction"])
@@ -52,7 +60,7 @@ try:
     # print(structure["momentum_score"])
     # print(structure["bos"])
 
-    print(f"Structure: {structure}")
+    # print(f"Structure: {structure}")
     # with open("output.py", "w") as file:
     #     file.write("# STRUCTURE ANALYSIS\n")
     #     for key, value in structure.items():
