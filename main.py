@@ -2,9 +2,8 @@ import MetaTrader5 as mt5
 import time as systime
 
 import state
-from utils.data import get_data
-from utils.dataframe import format_dataframe
 from utils.mt5_connector import connect, shutdown
+from utils.data import get_data
 from utils.structure import analyze_structure, find_swings
 from utils.liquidity import detect_liquidity_sweep
 from utils.choch_bos import detect_choch
@@ -12,47 +11,36 @@ from models.continuation import detect_continuation_setup
 from utils.alerts import send_telegram_alert
 
 
-# ===============================
-# CONFIG
-# ===============================
-
 PAIRS = [
     "EURUSDm",
     "GBPUSDm",
-    "AUDUSDm",
-    "NZDUSDm",
-    "USDCHFm",
-    "USDCADm",
-    "USDJPYm",
-    "GBPJPYm",
+    # "AUDUSDm",
+    # "NZDUSDm",
+    # "USDCHFm",
+    # "USDCADm",
+    # "USDJPYm",
+    # "GBPJPYm",
     "XAUUSDm",
 ]
 
-# symbol = "EURUSDm"
-
-# print("Multi-pair scanner running (15M candle-close mode)...")
-
-# ===============================
-# CONNECT ONCE
-# ===============================
-
+# Connect to MT5 terminal
 if not connect():
     quit()
 
 try:
 
     # while True:
-
     for symbol in PAIRS:
-
-        # print(f"Checking {symbol}")
         df_h4 = get_data(symbol, mt5.TIMEFRAME_H4)
         df_m15 = get_data(symbol, mt5.TIMEFRAME_M15)
 
-        df_h4 = format_dataframe(df_h4)
-        df_m15 = format_dataframe(df_m15)
         structure = analyze_structure(df_h4, symbol=symbol)
+
         print(structure)
+
+except KeyboardInterrupt:
+    print("\nBot stopped manually.")
+    shutdown()
 
     # print(structure["state"])
     # print(structure["external_direction"])
@@ -179,9 +167,6 @@ try:
     #     # Sleep AFTER processing all pairs
     #     systime.sleep(10)
 
-except KeyboardInterrupt:
-    print("\nBot stopped manually.")
-    shutdown()
 
 # try:
 #     while True:

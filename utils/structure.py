@@ -258,51 +258,59 @@ def compress_structure_after_bos(swings, bos):
 # ===================================================
 # 6️⃣ MASTER STRUCTURE ENGINE (MULTI-PAIR SAFE)
 # ===================================================
-
-
 def analyze_structure(
     data,
-    internal_lookback=3,
-    external_lookback=7,
-    tolerance=0.00005,
-    symbol=None,
+    internal_lookback: int = 3,
+    external_lookback: int = 7,
+    tolerance: float = 0.00005,
+    symbol: str | None = None,
 ):
+    """
+    Multi-pair market structure analyzer.
+    Maintains persistent structural bias per symbol.
+    """
 
+    # ---------------------------------------------------
+    # Validate symbol (required for multi-pair state)
+    # ---------------------------------------------------
     if symbol is None:
         raise ValueError("Symbol must be provided for multi-pair structure tracking.")
 
     # ---------------------------------------------------
-    # Initialize per-symbol persistent memory container
+    # Initialize persistent state container
     # ---------------------------------------------------
-    if not hasattr(analyze_structure, "external_state"):
-        analyze_structure.external_state = {}
+    if not hasattr(analyze_structure, "_state"):
+        analyze_structure._state = {}
 
-    # Create symbol-specific state if not existing
-    if symbol not in analyze_structure.external_state:
-        analyze_structure.external_state[symbol] = {
+    # Create symbol state if not existing
+    if symbol not in analyze_structure._state:
+        analyze_structure._state[symbol] = {
             "bias": None,
             "pending_bos": None,
             "pending_level": None,
             "awaiting_pullback": False,
         }
 
-    external_state = analyze_structure.external_state[symbol]
+    state_memory = analyze_structure._state[symbol]
 
     # ---------------------------------------------------
-    # External swings (macro view)
+    # External (macro) structure
     # ---------------------------------------------------
-    external_swings_raw = find_swings(data, external_lookback, tolerance)
-    external_swings = strict_alternation_structure(external_swings_raw)
+    external_swings = strict_alternation_structure(
+        find_swings(data, external_lookback, tolerance)
+    )
 
     # ---------------------------------------------------
-    # Internal swings (micro view)
+    # Internal (micro) structure
     # ---------------------------------------------------
-    internal_swings = find_swings(data, internal_lookback, tolerance)
-    internal_swings = strict_alternation_structure(internal_swings)
+    internal_swings = strict_alternation_structure(
+        find_swings(data, internal_lookback, tolerance)
+    )
+
     internal_direction = get_direction(internal_swings)
 
     # ---------------------------------------------------
-    # Detect confirmed BOS
+    # Detect Break of Structure (BOS)
     # ---------------------------------------------------
     bos = detect_bos(symbol, data, internal_swings)
 
@@ -312,89 +320,90 @@ def analyze_structure(
     momentum = calculate_momentum(internal_swings)
 
     # ---------------------------------------------------
-    # Structural reading (non-persistent baseline)
+    # Structural baseline direction
     # ---------------------------------------------------
-    external_direction_structural = get_direction(external_swings)
+    structural_direction = get_direction(external_swings)
+
+    # Initialize bias first time only
+    if state_memory["bias"] is None:
+        state_memory["bias"] = structural_direction
 
     # ---------------------------------------------------
-    # Initialize bias if first time for this symbol
-    # ---------------------------------------------------
-    if external_state["bias"] is None:
-        external_state["bias"] = external_direction_structural
-
-    # ---------------------------------------------------
-    # 1️⃣ If BOS appears → mark pending (do NOT flip yet)
+    # Register BOS (but do not flip bias yet)
     # ---------------------------------------------------
     if bos:
-        external_state["pending_bos"] = bos["type"]
-        external_state["pending_level"] = bos["level"]
-        external_state["awaiting_pullback"] = True
+        state_memory.update(
+            {
+                "pending_bos": bos["type"],
+                "pending_level": bos["level"],
+                "awaiting_pullback": True,
+            }
+        )
 
     # ---------------------------------------------------
-    # 2️⃣ Wait for pullback confirmation before flipping
+    # Pullback confirmation logic
     # ---------------------------------------------------
-    if external_state["awaiting_pullback"]:
+    if state_memory["awaiting_pullback"]:
 
         last_close = data["Close"].iloc[-2]
+        pending_type = state_memory["pending_bos"]
+        pending_level = state_memory["pending_level"]
 
-        # ----- Bullish BOS waiting confirmation -----
-        if external_state["pending_bos"] == "bullish_bos":
+        # Bullish confirmation
+        if (
+            pending_type == "bullish_bos"
+            and internal_direction == "bearish"
+            and last_close > pending_level
+        ):
+            state_memory.update(
+                {
+                    "bias": "bullish",
+                    "pending_bos": None,
+                    "pending_level": None,
+                    "awaiting_pullback": False,
+                }
+            )
 
-            if (
-                internal_direction == "bearish"
-                and last_close > external_state["pending_level"]
-            ):
-                external_state["bias"] = "bullish"
-                external_state["pending_bos"] = None
-                external_state["pending_level"] = None
-                external_state["awaiting_pullback"] = False
+        # Bearish confirmation
+        elif (
+            pending_type == "bearish_bos"
+            and internal_direction == "bullish"
+            and last_close < pending_level
+        ):
+            state_memory.update(
+                {
+                    "bias": "bearish",
+                    "pending_bos": None,
+                    "pending_level": None,
+                    "awaiting_pullback": False,
+                }
+            )
 
-        # ----- Bearish BOS waiting confirmation -----
-        elif external_state["pending_bos"] == "bearish_bos":
-
-            if (
-                internal_direction == "bullish"
-                and last_close < external_state["pending_level"]
-            ):
-                external_state["bias"] = "bearish"
-                external_state["pending_bos"] = None
-                external_state["pending_level"] = None
-                external_state["awaiting_pullback"] = False
-
-    external_direction = external_state["bias"]
+    external_direction = state_memory["bias"]
 
     # ---------------------------------------------------
-    # Structural State Classification
+    # Structural state classification
     # ---------------------------------------------------
     state = "distribution"
 
     if external_direction == "bullish":
-
         if bos and bos["type"] == "bullish_bos":
             state = "bullish_expansion"
-
         elif internal_direction == "bearish":
             state = "bullish_correction"
-
         else:
             state = "bullish_expansion"
 
     elif external_direction == "bearish":
-
         if bos and bos["type"] == "bearish_bos":
             state = "bearish_expansion"
-
         elif internal_direction == "bullish":
             state = "bearish_correction"
-
         else:
             state = "bearish_expansion"
 
     else:
-        if internal_direction == "neutral":
-            state = "distribution"
-        else:
-            state = "transition"
+        state = "transition" if internal_direction != "neutral" else "distribution"
 
     return {
         "symbol": symbol,
@@ -406,8 +415,3 @@ def analyze_structure(
         "external_swings": external_swings,
         "internal_swings": internal_swings,
     }
-
-
-# def reset_structure_memory():
-#     if hasattr(analyze_structure, "external_state"):
-#         del analyze_structure.external_state
