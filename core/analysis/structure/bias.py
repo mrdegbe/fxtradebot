@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 Swing = Tuple  # (timestamp, price, type)
 
 
-def get_direction(swings: List[Swing], tolerance: float = 0.0) -> str:
+def get_bias(swings: List[Swing], tolerance: float = 0.0) -> str:
     """
     Determine market structural direction using sequential swing logic.
 

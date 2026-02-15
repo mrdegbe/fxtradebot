@@ -1,26 +1,20 @@
 import MetaTrader5 as mt5
 import time as systime
 
-import state
-from utils.mt5_connector import connect, shutdown
-from utils.data import get_data
-from utils.structure import analyze_structure, find_swings
-from utils.liquidity import detect_liquidity_sweep
-from utils.choch_bos import detect_choch
-from models.continuation import detect_continuation_setup
-from utils.alerts import send_telegram_alert
-
+from core.analysis.structure.structure_engine import analyze_structure
+from core.market_data.mt5_connector import connect, shutdown
+from core.market_data.data_fetcher import get_data
 
 PAIRS = [
     "EURUSDm",
-    "GBPUSDm",
+    # "GBPUSDm",
     # "AUDUSDm",
     # "NZDUSDm",
     # "USDCHFm",
     # "USDCADm",
     # "USDJPYm",
     # "GBPJPYm",
-    "XAUUSDm",
+    # "XAUUSDm",
 ]
 
 # Connect to MT5 terminal
