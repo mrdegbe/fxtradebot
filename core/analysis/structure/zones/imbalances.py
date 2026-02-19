@@ -50,6 +50,7 @@
 
 #     return None
 
+
 def detect_imbalance(data, index):
     if index < 2:
         return None

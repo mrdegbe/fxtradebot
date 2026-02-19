@@ -1,13 +1,14 @@
 import MetaTrader5 as mt5
 import time as systime
 
+from core.analysis.mtf.topdown_engine import TopDownEngine
 from core.analysis.structure.structure_engine import analyze_structure
 from core.market_data.mt5_connector import connect, shutdown
 from core.market_data.data_fetcher import get_data
 
 PAIRS = [
     "EURUSDm",
-    "GBPUSDm",
+    # "GBPUSDm",
     # "AUDUSDm",
     # "NZDUSDm",
     # "USDCHFm",
@@ -21,16 +22,28 @@ PAIRS = [
 if not connect():
     quit()
 
+# --------------------------
+# Create TopDownEngine instance
+# --------------------------
+engine = TopDownEngine(get_data_function=get_data)  # inject your data fetching function
+
 try:
 
     # while True:
     for symbol in PAIRS:
-        df_h4 = get_data(symbol, mt5.TIMEFRAME_H4)
-        df_m15 = get_data(symbol, mt5.TIMEFRAME_M15)
+        print(f"\nAnalyzing {symbol}...")
 
-        structure = analyze_structure(df_h4, symbol=symbol)
+        # Get multi-timeframe snapshots
+        snapshots = engine.analyze_symbol(symbol)
 
-        print(structure)
+        print(f"{symbol} → Timeframe Analysis: {snapshots}")
+
+        # snapshots is a dict of StructureSnapshot
+        # for tf, snap in snapshots.items():
+        #     print(
+        #         f"{symbol} → {tf.upper()} Bias: {snap.bias.external}, "
+        #         f"Internal: {snap.bias.internal}, State: {snap.state}, Momentum: {snap.momentum}"
+        #     )
 
 except KeyboardInterrupt:
     print("\nBot stopped manually.")

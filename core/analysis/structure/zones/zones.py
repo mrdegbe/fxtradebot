@@ -1,4 +1,7 @@
-from core.analysis.structure.zones.displacement import calculate_displacement_strength, is_displacement_candle
+from core.analysis.structure.zones.displacement import (
+    calculate_displacement_strength,
+    is_displacement_candle,
+)
 from core.analysis.structure.zones.imbalances import detect_imbalance
 
 
@@ -25,6 +28,7 @@ def build_zone_from_base(data, base_index, zone_type):
             "distal": high,
             "base_index": base_index,
         }
+
 
 def build_zone(data, base_index, imbalance, strength):
     base_high = data["High"].iloc[base_index]
@@ -53,6 +57,7 @@ def build_zone(data, base_index, imbalance, strength):
         "displacement_strength": float(strength),
         "timestamp": timestamp,
     }
+
 
 def detect_base_zones(data):
     zones = []

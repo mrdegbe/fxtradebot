@@ -4,10 +4,6 @@ from core.analysis.structure.swings import find_swings
 from core.analysis.structure.bias import get_bias
 from core.analysis.structure.bos import detect_bos
 from core.analysis.structure.compression import compress_structure_after_bos
-
-from core.analysis.structure.zones.base_zones import detect_base_zones
-# from core.analysis.structure.zones.bos_zones import detect_bos_zones
-# from core.analysis.structure.zones.merger import merge_zones
 from core.models.analysis import StructureSnapshot, Bias
 
 
@@ -70,23 +66,10 @@ def analyze_structure(
     # ---------------------------------------------------
     bos = detect_bos(symbol, data, internal_swings)
 
-    # supply, demand = merge_zones(detect_bos_zones(data, bos), detect_base_zones(data))
-
     if bos:
         internal_swings = compress_structure_after_bos(internal_swings, bos)
 
     momentum = calculate_momentum(internal_swings)
-
-    # zones = detect_base_zones(data)
-
-    # supply = [z for z in zones if z["type"] == "supply"]
-    # demand = [z for z in zones if z["type"] == "demand"]
-    zone_data = detect_base_zones(data)
-
-    zones = zone_data["zones"]
-
-    supply = [z for z in zones if z["type"] == "supply"]
-    demand = [z for z in zones if z["type"] == "demand"]
 
     # ---------------------------------------------------
     # Structural baseline direction
@@ -101,13 +84,38 @@ def analyze_structure(
     # Register BOS (but do not flip bias yet)
     # ---------------------------------------------------
     if bos:
-        state_memory.update(
-            {
-                "pending_bos": bos["type"],
-                "pending_level": bos["level"],
-                "awaiting_pullback": True,
-            }
-        )
+        # If already waiting for confirmation
+        if state_memory["awaiting_pullback"]:
+
+            # If new BOS in SAME direction → strong continuation
+            if bos["type"] == state_memory["pending_bos"]:
+                state_memory.update(
+                    {
+                        "bias": "bullish" if "bullish" in bos["type"] else "bearish",
+                        "pending_bos": None,
+                        "pending_level": None,
+                        "awaiting_pullback": False,
+                    }
+                )
+
+            # If opposite BOS → overwrite pending
+            else:
+                state_memory.update(
+                    {
+                        "pending_bos": bos["type"],
+                        "pending_level": bos["level"],
+                        "awaiting_pullback": True,
+                    }
+                )
+
+        else:
+            state_memory.update(
+                {
+                    "pending_bos": bos["type"],
+                    "pending_level": bos["level"],
+                    "awaiting_pullback": True,
+                }
+            )
 
     # ---------------------------------------------------
     # Pullback confirmation logic
@@ -186,6 +194,4 @@ def analyze_structure(
         momentum=momentum,
         external_swings=external_swings,
         internal_swings=internal_swings,
-        supply_zones=supply,
-        demand_zones=demand,
     )

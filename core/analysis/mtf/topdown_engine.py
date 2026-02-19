@@ -1,52 +1,42 @@
-from mtf.context_models import TopDownContext, TimeframeBias
-from mtf.alignment import determine_overall_bias
+# analysis/mtf/topdown_engine.py
+
+from typing import Dict
+from core.analysis.structure.structure_engine import analyze_structure
+from core.analysis.mtf.timeframe_map import TIMEFRAMES
+from core.market_data.data_fetcher import get_data
 
 
 class TopDownEngine:
 
-    def __init__(self, structure_engine):
-        self.structure_engine = structure_engine
+    def __init__(self, get_data_function):
+        """
+        get_data_function must implement:
+            get_data(symbol: str, timeframe_code: str) -> DataFrame
+        """
+        self.get_data_function = get_data_function
 
-    def analyze_symbol(self, symbol):
+    def analyze_symbol(self, symbol: str) -> Dict[str, object]:
+        """
+        Runs structure analysis across all configured timeframes.
+        Returns dictionary of StructureSnapshot per timeframe.
+        """
 
-        weekly = self._build_tf(symbol, "W1")
-        daily = self._build_tf(symbol, "D1")
-        h4 = self._build_tf(symbol, "H4")
+        snapshots = {}
 
-        overall = determine_overall_bias(weekly, daily, h4)
-
-        return TopDownContext(
-            overall_bias=overall,
-            weekly=weekly,
-            daily=daily,
-            h4=h4,
-            entry_timeframe="M15",
+        # Process highest → lowest timeframe
+        ordered_timeframes = sorted(
+            TIMEFRAMES.values(), key=lambda tf: tf.rank, reverse=True
         )
 
-    def _build_tf(self, symbol, timeframe):
+        for tf in ordered_timeframes:
 
-        ctx = self.structure_engine.analyze(symbol, timeframe)
+            data = self.get_data_function(symbol, tf.code)
 
-        structure_state = "range"
+            snapshot = analyze_structure(data=data, symbol=symbol)
 
-        if ctx.bos:
-            structure_state = "continuation"
+            # Inject timeframe label
+            snapshot.timeframe = tf.name
 
-        return TimeframeBias(
-            timeframe=timeframe,
-            direction=ctx.direction,
-            momentum_score=ctx.momentum_score,
-            structure_state=structure_state,
-            supply_zone=None,
-            demand_zone=None,
-            liquidity_zones=None,
-            choch=None,
-            imbalances=None,
-        )
+            snapshots[tf.name] = snapshot
 
-
-# liquidity_zones
-# choch
-# supply_zones
-# demand_zones
-# imbalances
+        return snapshots

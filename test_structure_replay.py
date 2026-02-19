@@ -4,7 +4,6 @@ from utils.dataframe import format_dataframe
 import MetaTrader5 as mt5
 import pandas as pd
 
-
 symbol = "USDCHFm"
 
 if not mt5.initialize():

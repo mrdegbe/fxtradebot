@@ -28,20 +28,17 @@
 
 #     return body > avg_body * multiplier
 
+
 def calculate_displacement_strength(data, index, lookback=5):
     if index < lookback:
         return 0
 
-    body = abs(
-        data["Close"].iloc[index] - data["Open"].iloc[index]
-    )
+    body = abs(data["Close"].iloc[index] - data["Open"].iloc[index])
 
-    avg_body = (
-        abs(
-            data["Close"].iloc[index - lookback:index]
-            - data["Open"].iloc[index - lookback:index]
-        ).mean()
-    )
+    avg_body = abs(
+        data["Close"].iloc[index - lookback : index]
+        - data["Open"].iloc[index - lookback : index]
+    ).mean()
 
     if avg_body == 0:
         return 0
