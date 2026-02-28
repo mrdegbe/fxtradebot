@@ -75,20 +75,7 @@ def main():
                     )
                     print(msg)
                     send_telegram_message(msg)
-                
-                else:
-                    msg = (
-                        f"PASIE Setup Detected!\n"
-                        f"Pair: {setup.symbol}\n"
-                        f"Direction: {setup.direction}\n"
-                        f"Entry: {setup.entry:.5f}\n"
-                        f"SL: {setup.stop_loss:.5f}\n"
-                        f"TP: {setup.take_profit:.5f}\n"
-                        f"RR: {setup.risk_reward:.2f}\n"
-                        f"Confidence: {setup.confidence_score:.1f}"
-                    )
-                    send_telegram_message(msg)
-
+                    
             # -------------------------------
             # 6️⃣ Wait for next M15 bar (~900s)
             # -------------------------------
